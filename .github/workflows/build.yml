@@ -25,8 +25,9 @@ jobs:
           wget --no-check-certificate https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz -O /tmp/openssl.tar.gz
           tar -xf /tmp/openssl.tar.gz -C /tmp
           mv /tmp/openssl-* /tmp/openssl
-          sed -i '/Requires: openssl/d' /root/rpmbuild/SPECS/nginx.spec 
-          sed -i '/BuildRequires: openssl/d' /root/rpmbuild/SPECS/nginx.spec 
+          find / -name nginx.spec
+          sed -i '/Requires: openssl/d' /root/rpmbuild/SPECS/nginx.spec
+          sed -i '/BuildRequires: openssl/d' /root/rpmbuild/SPECS/nginx.spec
           sed -i 's/\-\-with\-stream_ssl_preread_module/\-\-with\-stream_ssl_preread_module \-\-with\-openssl\=\/tmp\/openssl/' /root/rpmbuild/SPECS/nginx.spec
           rpmbuild -ba /root/rpmbuild/SPECS/nginx.spec
       - name: Upload workflow artifacts
