@@ -33,4 +33,27 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: nginx-centos7
-          path: /github/home/rpmbuild/RPMS/x86_64/nginx-*-1.el7.ngx.x86_64.rpm
+          path: ${{ env.HOME }}/rpmbuild/RPMS/x86_64/nginx-${{ env.NGINX_VERSION }}-1.el7.ngx.x86_64.rpm
+  upload:
+    name: Upload release binaries
+    # if: github.event_name == 'release'
+    needs: build
+    permissions:
+      contents: write
+    runs-on: ['self-hosted']
+    container:
+      image: centos:centos7
+    steps:
+      - name: Install gh cli
+        run: |
+          yum-config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
+          yum -y install gh
+      - name: Download workflow artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: nginx-centos7
+      - name: Upload release artifacts
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$GITHUB_REF_NAME" nginx-*
