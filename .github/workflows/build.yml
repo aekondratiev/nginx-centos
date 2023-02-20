@@ -29,7 +29,7 @@ jobs:
           sed -i '/BuildRequires: openssl/d' $HOME/rpmbuild/SPECS/nginx.spec
           sed -i 's/\-\-with\-stream_ssl_preread_module/\-\-with\-stream_ssl_preread_module \-\-with\-openssl\=\/tmp\/openssl/' $HOME/rpmbuild/SPECS/nginx.spec
           rpmbuild -ba $HOME/rpmbuild/SPECS/nginx.spec
-          /bin/rm nginx-debuginfo-*-1.el7.ngx.x86_64.rpm
+          /bin/rm $HOME/rpmbuild/RPMS/x86_64/nginx-debuginfo-*-1.el7.ngx.x86_64.rpm
       - name: Upload workflow artifacts
         uses: actions/upload-artifact@v3
         with:
