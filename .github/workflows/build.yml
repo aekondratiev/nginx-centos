@@ -6,7 +6,7 @@ on:
 permissions:
   contents: read
 jobs:
-  build:
+  build7:
     name: Build nginx centos7
     runs-on: ['self-hosted']
     container:
@@ -37,10 +37,41 @@ jobs:
         with:
           name: nginx-centos
           path: /github/home/rpmbuild/RPMS/x86_64/nginx-*.ngx.x86_64.rpm
+  build8:
+    name: Build nginx centos8
+    runs-on: ['self-hosted']
+    container:
+      image: centos:8
+    steps:
+      - name: Install deps
+        run: yum -y install gcc gcc-c++ make zlib-devel rpm-build pcre2-devel wget
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Build binary
+        env:
+          NGINX_VERSION: "1.22.1"
+          OPENSSL_VERSION: "1.1.1t"
+        run: |
+          rpm -Uvh http://nginx.org/packages/centos/7/SRPMS/nginx-$NGINX_VERSION-1.el8.ngx.src.rpm
+          wget --no-check-certificate https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz -O /tmp/openssl.tar.gz
+          tar -xf /tmp/openssl.tar.gz -C /tmp
+          mv /tmp/openssl-* /tmp/openssl
+          sed -i '/Requires: openssl/d' $HOME/rpmbuild/SPECS/nginx.spec
+          sed -i '/BuildRequires: openssl/d' $HOME/rpmbuild/SPECS/nginx.spec
+          sed -i 's/\-\-with\-stream_ssl_preread_module/\-\-with\-stream_ssl_preread_module \-\-with\-openssl\=\/tmp\/openssl/' $HOME/rpmbuild/SPECS/nginx.spec
+          rpmbuild -ba $HOME/rpmbuild/SPECS/nginx.spec
+          /bin/rm $HOME/rpmbuild/RPMS/x86_64/nginx-debuginfo-*.ngx.x86_64.rpm
+      - name: Upload workflow artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: nginx-centos
+          path: /github/home/rpmbuild/RPMS/x86_64/nginx-*.ngx.x86_64.rpm
   upload:
     name: Upload release binaries
     if: github.event_name == 'release'
-    needs: build
+    needs: [build7, build8]
     permissions:
       contents: write
     runs-on: ['self-hosted']
