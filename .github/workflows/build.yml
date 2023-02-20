@@ -33,4 +33,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: nginx-centos7
-          path: $HOME/rpmbuild/RPMS/x86_64/nginx-*-1.el7.ngx.x86_64.rpm
+          path: /github/home/rpmbuild/RPMS/x86_64/nginx-*-1.el7.ngx.x86_64.rpm
