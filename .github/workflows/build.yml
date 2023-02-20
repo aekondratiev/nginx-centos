@@ -10,7 +10,7 @@ jobs:
     name: Build nginx centos7
     runs-on: ['self-hosted']
     container:
-      image: centos:centos7
+      image: centos:7
     steps:
       - name: Install deps
         run: yum -y install gcc gcc-c++ make zlib-devel rpm-build pcre2-devel wget
@@ -31,12 +31,12 @@ jobs:
           sed -i '/BuildRequires: openssl/d' $HOME/rpmbuild/SPECS/nginx.spec
           sed -i 's/\-\-with\-stream_ssl_preread_module/\-\-with\-stream_ssl_preread_module \-\-with\-openssl\=\/tmp\/openssl/' $HOME/rpmbuild/SPECS/nginx.spec
           rpmbuild -ba $HOME/rpmbuild/SPECS/nginx.spec
-          /bin/rm $HOME/rpmbuild/RPMS/x86_64/nginx-debuginfo-*-1.el7.ngx.x86_64.rpm
+          /bin/rm $HOME/rpmbuild/RPMS/x86_64/nginx-debuginfo-*.ngx.x86_64.rpm
       - name: Upload workflow artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: nginx-centos7
-          path: /github/home/rpmbuild/RPMS/x86_64/nginx-*-1.el7.ngx.x86_64.rpm
+          name: nginx-centos
+          path: /github/home/rpmbuild/RPMS/x86_64/nginx-*.ngx.x86_64.rpm
   upload:
     name: Upload release binaries
     if: github.event_name == 'release'
@@ -45,7 +45,7 @@ jobs:
       contents: write
     runs-on: ['self-hosted']
     container:
-      image: centos:centos7
+      image: centos:7
     steps:
       - name: Install gh cli
         run: |
@@ -54,7 +54,7 @@ jobs:
       - name: Download workflow artifacts
         uses: actions/download-artifact@v3
         with:
-          name: nginx-centos7
+          name: nginx-centos
       - name: Upload release artifacts
         env:
           GH_REPO: ${{ github.repository }}
