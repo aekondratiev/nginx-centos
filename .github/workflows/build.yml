@@ -17,14 +17,18 @@ jobs:
         with:
           fetch-depth: 0
       - name: Build binary
+        env:
+          NGINX_VERSION: "1.22.1"
+          OPENSSL_VERSION: "1.1.1t"
         run: |
-          rpm -Uvh http://nginx.org/packages/centos/7/SRPMS/nginx-1.22.1-1.el7.ngx.src.
-          wget --no-check-certificate https://www.openssl.org/source/openssl-1.1.1t.tar.gz -O openssl.tar.gz
-          tar -xf openssl.tar.gz
-          mv openssl-* openssl
+          rpm -Uvh http://nginx.org/packages/centos/7/SRPMS/nginx-$NGINX_VERSION-1.el7.ngx.src.rpm
+          wget --no-check-certificate https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz -O /tmp/openssl.tar.gz
+          tar -xf /tmp/openssl.tar.gz -C /tmp
+          mv /tmp/openssl-* /tmp/openssl
           sed -i '/Requires: openssl/d' /root/rpmbuild/SPECS/nginx.spec 
           sed -i '/BuildRequires: openssl/d' /root/rpmbuild/SPECS/nginx.spec 
-          sed -i "s/\-\-with\-stream_ssl_preread_module/\-\-with\-stream_ssl_preread_module \-\-with\-openssl\=\/__w\/nginx-centos\/nginx-centos\/openssl/" /root/rpmbuild/SPECS/nginx.spec 
+          sed -i 's/\-\-with\-stream_ssl_preread_module/\-\-with\-stream_ssl_preread_module \-\-with\-openssl\=\/tmp\/openssl/' /root/rpmbuild/SPECS/nginx.spec
+          rpmbuild -ba /root/rpmbuild/SPECS/nginx.spec
       - name: Upload workflow artifacts
         uses: actions/upload-artifact@v3
         with:
