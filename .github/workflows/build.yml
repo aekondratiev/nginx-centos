@@ -6,47 +6,18 @@ on:
 permissions:
   contents: read
 jobs:
-  build7:
-    name: Build nginx centos7
+  build:
+    name: Build nginx centos
     runs-on: ['self-hosted']
+    strategy:
+      matrix:
+        version: [7, 8]
     container:
-      image: centos:7
-    steps:
-      - name: Install deps
-        run: yum -y install gcc gcc-c++ make zlib-devel rpm-build pcre2-devel wget
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - name: Build binary
-        env:
-          NGINX_VERSION: "1.22.1"
-          OPENSSL_VERSION: "1.1.1t"
-        run: |
-          rpm -Uvh http://nginx.org/packages/centos/7/SRPMS/nginx-$NGINX_VERSION-1.el7.ngx.src.rpm
-          wget --no-check-certificate https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz -O /tmp/openssl.tar.gz
-          tar -xf /tmp/openssl.tar.gz -C /tmp
-          mv /tmp/openssl-* /tmp/openssl
-          sed -i '/Requires: openssl/d' $HOME/rpmbuild/SPECS/nginx.spec
-          sed -i '/BuildRequires: openssl/d' $HOME/rpmbuild/SPECS/nginx.spec
-          sed -i 's|--with-stream_ssl_preread_module|--with-stream_ssl_preread_module --with-openssl=/tmp/openssl|' $HOME/rpmbuild/SPECS/nginx.spec
-          rpmbuild -ba $HOME/rpmbuild/SPECS/nginx.spec
-          /bin/rm $HOME/rpmbuild/RPMS/x86_64/nginx-debuginfo-*.ngx.x86_64.rpm
-      - name: Upload workflow artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: nginx-centos
-          path: /github/home/rpmbuild/RPMS/x86_64/nginx-*.ngx.x86_64.rpm
-  build8:
-    name: Build nginx centos8
-    runs-on: ['self-hosted']
-    container:
-      image: centos:8
+      image: centos:${{ matrix.version }}
     steps:
       - name: Install deps
         run: |
-          sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-Linux-*
-          sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.epel.cloud|g' /etc/yum.repos.d/CentOS-Linux-*
+          if grep -q 'release 8' /etc/redhat-release ; then sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-Linux-* ; sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.epel.cloud|g' /etc/yum.repos.d/CentOS-Linux-* ; fi
           yum -y install gcc gcc-c++ make zlib-devel rpm-build pcre2-devel wget perl
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -56,9 +27,10 @@ jobs:
         env:
           NGINX_VERSION: "1.22.1"
           OPENSSL_VERSION: "3.0.8"
+          CENTOS_VERSION: ${{ matrix.version }}
         run: |
-          rpm -Uvh http://nginx.org/packages/centos/8/SRPMS/nginx-$NGINX_VERSION-1.el8.ngx.src.rpm
-          wget --no-check-certificate https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz -O /tmp/openssl.tar.gz
+          rpm -Uvh http://nginx.org/packages/centos/${CENTOS_VERSION}/SRPMS/nginx-${NGINX_VERSION}-1.el${CENTOS_VERSION}.ngx.src.rpm
+          wget --no-check-certificate https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz -O /tmp/openssl.tar.gz
           tar -xf /tmp/openssl.tar.gz -C /tmp
           mv /tmp/openssl-* /tmp/openssl
           sed -i '/Requires: openssl/d' $HOME/rpmbuild/SPECS/nginx.spec
@@ -71,10 +43,44 @@ jobs:
         with:
           name: nginx-centos
           path: /github/home/rpmbuild/RPMS/x86_64/nginx-*.ngx.x86_64.rpm
+  # build8:
+  #   name: Build nginx centos8
+  #   runs-on: ['self-hosted']
+  #   container:
+  #     image: centos:8
+  #   steps:
+  #     - name: Install deps
+  #       run: |
+  #         sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-Linux-*
+  #         sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.epel.cloud|g' /etc/yum.repos.d/CentOS-Linux-*
+  #         yum -y install gcc gcc-c++ make zlib-devel rpm-build pcre2-devel wget perl
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v3
+  #       with:
+  #         fetch-depth: 0
+  #     - name: Build binary
+  #       env:
+  #         NGINX_VERSION: "1.22.1"
+  #         OPENSSL_VERSION: "3.0.8"
+  #       run: |
+  #         rpm -Uvh http://nginx.org/packages/centos/8/SRPMS/nginx-$NGINX_VERSION-1.el8.ngx.src.rpm
+  #         wget --no-check-certificate https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz -O /tmp/openssl.tar.gz
+  #         tar -xf /tmp/openssl.tar.gz -C /tmp
+  #         mv /tmp/openssl-* /tmp/openssl
+  #         sed -i '/Requires: openssl/d' $HOME/rpmbuild/SPECS/nginx.spec
+  #         sed -i '/BuildRequires: openssl/d' $HOME/rpmbuild/SPECS/nginx.spec
+  #         sed -i 's|--with-stream_ssl_preread_module|--with-stream_ssl_preread_module --with-openssl=/tmp/openssl|' $HOME/rpmbuild/SPECS/nginx.spec
+  #         rpmbuild -ba $HOME/rpmbuild/SPECS/nginx.spec
+  #         /bin/rm $HOME/rpmbuild/RPMS/x86_64/nginx-debuginfo-*.ngx.x86_64.rpm
+  #     - name: Upload workflow artifacts
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: nginx-centos
+  #         path: /github/home/rpmbuild/RPMS/x86_64/nginx-*.ngx.x86_64.rpm
   upload:
     name: Upload release binaries
     if: github.event_name == 'release'
-    needs: [build7, build8]
+    needs: [build]
     permissions:
       contents: write
     runs-on: ['self-hosted']
