@@ -1,15 +1,14 @@
 name: Build and upload binaries
 on:
-  release:
-    types: [published]
   push:
-  pull_request:
 permissions:
   contents: read
 jobs:
   build:
     name: Build nginx centos7
-    runs-on: centos:centos7
+    runs-on: ['self-hosted']
+    container:
+      image: centos:centos7
     steps:
       - name: Install deps
         run: yum -y install gcc gcc-c++ make zlib-devel rpm-build pcre2-devel wget
