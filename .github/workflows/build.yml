@@ -29,11 +29,12 @@ jobs:
           sed -i '/BuildRequires: openssl/d' $HOME/rpmbuild/SPECS/nginx.spec
           sed -i 's/\-\-with\-stream_ssl_preread_module/\-\-with\-stream_ssl_preread_module \-\-with\-openssl\=\/tmp\/openssl/' $HOME/rpmbuild/SPECS/nginx.spec
           rpmbuild -ba $HOME/rpmbuild/SPECS/nginx.spec
+          /bin/rm nginx-debuginfo-*-1.el7.ngx.x86_64.rpm
       - name: Upload workflow artifacts
         uses: actions/upload-artifact@v3
         with:
           name: nginx-centos7
-          path: ${{ env.HOME }}/rpmbuild/RPMS/x86_64/nginx-${{ env.NGINX_VERSION }}-1.el7.ngx.x86_64.rpm
+          path: /github/home/rpmbuild/RPMS/x86_64/nginx-*-1.el7.ngx.x86_64.rpm
   upload:
     name: Upload release binaries
     # if: github.event_name == 'release'
