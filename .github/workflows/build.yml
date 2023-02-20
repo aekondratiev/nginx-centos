@@ -19,6 +19,7 @@ jobs:
       - name: Build binary
         run: |
           env
+          pwd
       #     rpm -Uvh http://nginx.org/packages/centos/7/SRPMS/nginx-1.22.1-1.el7.ngx.src.
       #     wget --no-check-certificate https://www.openssl.org/source/openssl-1.1.1t.tar.gz -O openssl.tar.gz
       #     tar -xf openssl.tar.gz
