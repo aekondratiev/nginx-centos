@@ -1,5 +1,7 @@
 name: Build and upload binaries
 on:
+  release:
+    types: [published]
   push:
 permissions:
   contents: read
@@ -37,7 +39,7 @@ jobs:
           path: /github/home/rpmbuild/RPMS/x86_64/nginx-*-1.el7.ngx.x86_64.rpm
   upload:
     name: Upload release binaries
-    # if: github.event_name == 'release'
+    if: github.event_name == 'release'
     needs: build
     permissions:
       contents: write
