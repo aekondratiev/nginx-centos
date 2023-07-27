@@ -27,7 +27,7 @@ jobs:
       - name: Build binary
         env:
           NGINX_VERSION: "1.24.0"
-          OPENSSL_VERSION: "3.0.8"
+          OPENSSL_VERSION: "3.0.9"
           CENTOS_VERSION: ${{ matrix.version }}
         run: |
           rpm -Uvh http://nginx.org/packages/centos/${CENTOS_VERSION}/SRPMS/nginx-${NGINX_VERSION}-1.el${CENTOS_VERSION}.ngx.src.rpm
