@@ -38,7 +38,7 @@ jobs:
           sed -i '/Requires: openssl/d' $HOME/rpmbuild/SPECS/nginx.spec
           sed -i '/BuildRequires: openssl/d' $HOME/rpmbuild/SPECS/nginx.spec
           sed -i 's|--with-stream_ssl_preread_module|--with-stream_ssl_preread_module --with-openssl=/tmp/openssl --add-dynamic-module=/tmp/ngx_http_geoip2_module.git|' $HOME/rpmbuild/SPECS/nginx.spec
-          sed -i 's|%{_sbindir}/nginx-debug|%{_sbindir}/nginx-debug\n\n%{_libdir}/nginx/modules/ngx_http_geoip2_module.so\n%{_libdir}/ngx_stream_geoip2_module.so|' $HOME/rpmbuild/SPECS/nginx.spec
+          sed -i 's|%{_mandir}/man8/nginx.8\*|%{_mandir}/man8/nginx.8\*\n\n%{_libdir}/nginx/modules/ngx_http_geoip2_module.so\n%{_libdir}/nginx/modules/ngx_stream_geoip2_module.so|' $HOME/rpmbuild/SPECS/nginx.spec
           sed -i 's|1%{?dist}.ngx|2%{?dist}.ngx|' $HOME/rpmbuild/SPECS/nginx.spec
           rpmbuild -ba $HOME/rpmbuild/SPECS/nginx.spec
           /bin/rm $HOME/rpmbuild/RPMS/x86_64/nginx-debuginfo-*.ngx.x86_64.rpm
